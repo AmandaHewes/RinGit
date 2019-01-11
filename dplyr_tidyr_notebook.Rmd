@@ -1,0 +1,133 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(dplyr)
+library(gapminder)
+data("gapminder")
+attach(gapminder) #Could use gapminder<-read.csv("data/gapminder_data.csv")
+head(gapminder)
+```
+I've loaded the gapminder data and now I am going manipulate it with dplyr.
+
+```{r}
+gap<-gapminder
+
+mean(gap[gap$continent=="Africa", "gdpPercap"]$gdpPercap)
+mean.gdpAfrica <- mean(gap$gdpPercap[continent=="Africa"])
+mean.gdpAfrica
+mean.gdpAsia <- mean(gap$gdpPercap[continent=="Asia"])
+mean.gdpAsia
+```
+
+###working with data the dplyr way
+select() - subset variables (columns)
+filter() - subset observations (rows)
+group_by() - counts and groups data
+summarize() - useful information about the data
+mutate() - add a new column based on the data
+%>% - "pipe"-connects a string of commands
+```{r}
+ncol(gap)
+names(gap)
+subset_gap<-gap%>%select(year, country,gdpPercap)
+subset_gap
+dim(subset_gap)
+```
+
+filter() - always filter before you select
+```{r}
+year_country_gdp_euro <- gap%>%
+  filter(continent=="Europe")%>%
+  select(year, country, gdpPercap)
+year_country_gdp_euro
+```
+
+```{r}
+Africa_practice <- gap%>%
+  filter(continent=="Africa")%>%
+  filter(year==2007)%>%
+  select(year,country,lifeExp)
+Africa_practice
+str(Africa_practice)
+dim(Africa_practice)
+```
+
+group_by() function will subset your data by chunking it based on a column
+group_by() turns a single dataframe into a set of dataframes grouped by some variable
+```{r}
+str(gap)
+gap_by_continent <- gap%>%group_by(continent)
+gap_by_continent
+str(gap_by_continent)
+```
+
+summarize()
+```{r}
+gdp_by_continent <- gap_by_continent%>% summarize(mean_gdpPercap=mean(gdpPercap))
+gdp_by_continent
+
+lifeexp_Africa <- gap%>%
+  filter(continent=="Africa")%>%
+  group_by(year)%>%
+  summarize(mean_lifeExp=mean(lifeExp))
+lifeexp_Africa 
+dim(lifeexp_Africa)
+
+gdp_Asia <- gap%>%
+  filter(continent=="Asia")%>%
+  group_by(year)%>%
+  summarize(avg_pop=mean(pop), avg_gdp=mean(gdpPercap))
+gdp_Asia
+
+gdp_percontinent <- gap%>%
+  group_by(continent)%>%
+  summarize(avg_gdp=mean(gdpPercap))
+gdp_percontinent
+```
+
+Calculate average life expentancy per country and figure out which has the longest and which has the shortest
+```{r}
+avg_lifeexp_percountry <- gap%>%
+  group_by(country)%>%
+  summarize(avg_lifeexp=mean(lifeExp))
+avg_lifeexp_percountry
+avg_lifeexp_percountry%>%filter(avg_lifeexp==min(avg_lifeexp))
+avg_lifeexp_percountry%>%filter(avg_lifeexp==max(avg_lifeexp))
+```
+
+mutate() lets you add a column to the data frame based on the data
+```{r}
+billgdp<-gap%>%
+  filter(year==2007)%>%
+  mutate(billion_gdp=gdpPercap*pop/10^9)%>%
+  select(continent, country, billion_gdp)
+dim(billgdp)
+colnames(billgdp)
+```
+
+```{r}
+gdp_by_cont <- gap%>%
+ group_by(continent, year)%>%
+  summarize(mean_gdp=mean(gdpPercap), sd_gdp=sd(gdpPercap), mean_pop=mean(pop), sample_size=n(), se_gdp=sd_gdp/sqrt(sample_size))
+gdp_by_cont
+str(gdp_by_cont)
+gdp_by_cont<-gdp_by_cont%>%data.frame()
+str(gdp_by_cont)
+```
+
+Combining dplyr with ggplot2
+```{r}
+library(ggplot2)
+
+gap%>%filter(continent=="Asia")%>%ggplot(aes(x=gdpPercap, y=lifeExp))+geom_point()
+
+```
