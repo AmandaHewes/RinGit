@@ -129,5 +129,64 @@ Combining dplyr with ggplot2
 library(ggplot2)
 
 gap%>%filter(continent=="Asia")%>%ggplot(aes(x=gdpPercap, y=lifeExp))+geom_point()
+```
+
+Data in a wide format
+```{r}
+gap_wide<-read.csv("data/gapminder_wide.csv", stringsAsFactors = FALSE)
+dim(gap_wide)
+colnames(gap_wide)
+```
+
+Changing data from a wide format to a long format
+```{r}
+head(gap_wide)
+#To make the data long, use the function gather
+
+gap_long<-gap_wide%>%gather(obstype_year, obs_values, -continent, -country)
+dim(gap_long)
+head(gap_long)
+#The only value here is the obs_value, all other columns are identifiers
+```
+
+Using the function seperate
+```{r}
+gap_long<-gap_long%>%separate(obstype_year, into=c("obs_type", "year"), sep="_") #Seperates obstype_year by the underscore character
+gap_long
+
+gap_long$year<-as.integer(gap_long$year) #Turning year from a character into an integer - "." is a coercing function
+head(gap_long)
+```
+
+```{r}
+mean_lifeexp_cont<-gap_long%>%
+  filter(obs_type=="lifeExp")%>%
+  group_by(continent)%>%
+  summarize(avg_life_exp=mean(obs_values))
+mean_lifeexp_cont
+mean_lifeexp_cont$avg_life_exp<-as.integer(mean_lifeexp_cont$avg_life_exp)
+```
+
+Going from a long dataset to a wide dataset so you can look at is visually
+```{r}
+str(gap_long)
+gap_normal<-gap_long%>%spread(obs_type, obs_values) #Spread function restores columns so pop, gdpPercap, etc. are all there
+str(gap_normal)
+colnames(gap_normal)
+
+str(gap)
+colnames(gap)
+
+gap_normal<-gap_normal[,names(gap)] #Makes the column names of gap_normal in the same order as those in gap
+names(gap_normal)
+names(gap)
+
+head(gap)
+head(gap_normal)
+
+all.equal(gap, gap_long) #Checks to see if two data frames are the same
+
+gap_normal<-gap_normal%>%arrange(country, continent, year)
+head(gap_normal)
 
 ```
