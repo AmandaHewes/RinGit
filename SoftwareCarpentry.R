@@ -314,3 +314,28 @@ celsius_to_fahr(100)
 install.packages(c("rmarkdown", "formatR"))
 library(formatR)
 library(rmarkdown)
+
+library(gapminder)
+library(dplyr)
+
+head(gapminder)
+dim(gapminder)
+Afghan_pop<-gapminder%>%
+  filter(year==c(1962,1967))%>%
+  filter(country=="Afghanistan")%>%
+  summarize(avg_pop=mean(pop))
+Afghan_pop
+
+avg_gdp<-gapminder%>%
+  filter(country=="Egypt")%>%
+  filter(year>1950)%>%
+  summarize(avg_gdp=mean(gdpPercap))
+avg_gdp
+
+library(ggplot2)
+ggplot(data=gapminder, aes(x=year, y=gdpPercap, color=continent)) +geom_point(alpha=0.5)+scale_y_log10()+geom_smooth(method=lm,size=0.5)
+
+Africa_only<-gapminder%>%
+  filter(country==c("Angola", "Algeria", "Burundi"))%>%
+  ggplot(aes(x=year, y=gdpPercap,color=country))+scale_y_log10() +geom_point()+geom_smooth(method=lm, size=0.5)
+Africa_only  
