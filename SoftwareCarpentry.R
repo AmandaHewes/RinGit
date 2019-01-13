@@ -310,3 +310,7 @@ celsius_to_fahr<-function(temp) {
 }
 celsius_to_fahr(0)
 celsius_to_fahr(100)
+
+install.packages(c("rmarkdown", "formatR"))
+library(formatR)
+library(rmarkdown)
